@@ -4,27 +4,21 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Danh sách cuộc họp</title>
+    <title>Lịch sử cuộc họp</title>
 
     <link rel="stylesheet" href="../assets/vendor/fonts/boxicons.css" />
     <link rel="stylesheet" href="../assets/vendor/css/core.css" />
     <link rel="stylesheet" href="../assets/vendor/css/theme-default.css" />
 
     <style>
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
+        .meeting-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-        }
-        .modal-content {
-            width: 50%;
-            border-radius: 8px;
-            background: white;
-            padding: 20px;
         }
     </style>
 </head>
@@ -44,57 +38,11 @@
             <div class="layout-page">
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
-                        <h4 class="fw-bold py-3 mb-4">Danh sách cuộc họp</h4>
+                        <h4 class="fw-bold py-3 mb-4">Lịch sử cuộc họp</h4>
 
                         <!-- Thanh công cụ -->
                         <div class="d-flex align-items-center gap-2 mb-3">
-                            <input type="text" id="search" class="form-control" placeholder="Tìm kiếm cuộc họp..." style="max-width: 250px;">
-                            <button id="filter-btn" class="btn btn-outline-secondary">Lọc</button>
-                            <button id="openModalBtn" class="btn btn-primary">Tạo cuộc họp mới</button>
-                        </div>
-
-                        <!-- Modal Lọc -->
-                        <div id="filter-modal" class="modal">
-                            <div class="modal-content">
-                                <h5 class="modal-title">Lọc cuộc họp</h5>
-
-                                <!-- From - To -->
-                                <div class="d-flex gap-2">
-                                    <div class="w-50">
-                                        <label>From:</label>
-                                        <input type="date" id="filter-from-date" class="form-control">
-                                    </div>
-                                    <div class="w-50">
-                                        <label>To:</label>
-                                        <input type="date" id="filter-to-date" class="form-control">
-                                    </div>
-                                </div>
-
-                                <button id="apply-filter" class="btn btn-primary mt-3">Áp dụng</button>
-                                <button class="btn btn-secondary mt-3" id="closeFilter">Đóng</button>
-                            </div>
-                        </div>
-
-                        <!-- Modal Tạo cuộc họp -->
-                        <div id="create-meeting-modal" class="modal">
-                            <div class="modal-content">
-                                <h5 class="modal-title">Tạo cuộc họp mới</h5>
-
-                                <label>Ngày:</label>
-                                <input type="date" id="meeting-date" class="form-control mb-2">
-
-                                <label>Tiêu đề:</label>
-                                <input type="text" id="meeting-title" class="form-control mb-2">
-
-                                <label>Nội dung:</label>
-                                <textarea id="meeting-details" class="form-control mb-2"></textarea>
-
-                                <label>Đính kèm tệp:</label>
-                                <input type="file" id="meeting-attachment" class="form-control mb-2">
-
-                                <button id="save-meeting" class="btn btn-primary mt-2">Lưu</button>
-                                <button class="btn btn-secondary mt-2" id="closeMeetingModal">Đóng</button>
-                            </div>
+                            <button id="create-meeting-btn" class="btn btn-primary">Tạo mới cuộc họp</button>
                         </div>
 
                         <!-- Danh sách cuộc họp -->
@@ -112,37 +60,45 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const filterModal = document.getElementById('filter-modal');
-            const createMeetingModal = document.getElementById('create-meeting-modal');
-
-            const filterBtn = document.getElementById('filter-btn');
-            const closeFilter = document.getElementById('closeFilter');
-            const applyFilterBtn = document.getElementById('apply-filter');
-
-            const openModalBtn = document.getElementById('openModalBtn');
-            const closeMeetingModal = document.getElementById('closeMeetingModal');
-            const saveMeetingBtn = document.getElementById('save-meeting');
-
             const meetingList = document.getElementById('meeting-list');
-            let meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+            const createMeetingBtn = document.getElementById('create-meeting-btn');
+
+            // Chuyển hướng đến records.html khi tạo cuộc họp
+            createMeetingBtn.addEventListener('click', function () {
+                window.location.href = "records.html";
+            });
 
             function renderMeetings() {
                 meetingList.innerHTML = "";
+                let meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+
                 meetings.forEach((meeting, index) => {
                     let meetingItem = document.createElement('div');
-                    meetingItem.classList.add('card', 'mb-3', 'p-3', 'meeting-item');
+                    meetingItem.classList.add('meeting-item');
                     meetingItem.innerHTML = `
-                        <h5>${meeting.date} - ${meeting.title}</h5>
-                        <p>${meeting.details}</p>
-                        <p><strong>File đính kèm:</strong> ${meeting.attachment ? meeting.attachment : "Không có"}</p>
-                        <button class="delete-btn btn btn-danger" data-index="${index}">Xóa</button>
+                        <span>${meeting.date} - ${meeting.fileName}</span>
+                        <div>
+                            <button class="view-btn btn btn-sm btn-info" data-index="${index}">Xem</button>
+                            <button class="delete-btn btn btn-sm btn-danger" data-index="${index}">Xóa</button>
+                        </div>
                     `;
                     meetingList.appendChild(meetingItem);
                 });
 
+                // Xem file
+                document.querySelectorAll('.view-btn').forEach(button => {
+                    button.addEventListener('click', function () {
+                        let index = this.getAttribute('data-index');
+                        let meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+                        alert(`Mở file: ${meetings[index].fileName}\nNội dung: ${meetings[index].content}`);
+                    });
+                });
+
+                // Xóa file
                 document.querySelectorAll('.delete-btn').forEach(button => {
                     button.addEventListener('click', function () {
                         let index = this.getAttribute('data-index');
+                        let meetings = JSON.parse(localStorage.getItem('meetings')) || [];
                         meetings.splice(index, 1);
                         localStorage.setItem('meetings', JSON.stringify(meetings));
                         renderMeetings();
@@ -150,46 +106,45 @@
                 });
             }
 
-            // Mở modal tạo cuộc họp
-            openModalBtn.addEventListener('click', () => createMeetingModal.style.display = 'flex');
-            closeMeetingModal.addEventListener('click', () => createMeetingModal.style.display = 'none');
-
-            // Lưu cuộc họp
-            saveMeetingBtn.addEventListener('click', function () {
-                let date = document.getElementById("meeting-date").value;
-                let title = document.getElementById("meeting-title").value;
-                let details = document.getElementById("meeting-details").value;
-                let attachmentInput = document.getElementById("meeting-attachment");
-                let attachment = attachmentInput.files.length > 0 ? attachmentInput.files[0].name : "";
-
-                if (date && title && details) {
-                    meetings.push({ date, title, details, attachment });
-                    localStorage.setItem('meetings', JSON.stringify(meetings));
-                    createMeetingModal.style.display = 'none';
-                    renderMeetings();
-                } else {
-                    alert("Vui lòng nhập đầy đủ thông tin cuộc họp!");
-                }
-            });
-
-            filterBtn.addEventListener('click', () => filterModal.style.display = 'flex');
-            closeFilter.addEventListener('click', () => filterModal.style.display = 'none');
-
-            applyFilterBtn.addEventListener('click', function () {
-                let fromDate = document.getElementById("filter-from-date").value;
-                let toDate = document.getElementById("filter-to-date").value;
-
-                let filteredMeetings = meetings.filter(meeting => {
-                    let meetingDate = new Date(meeting.date);
-                    return (!fromDate || meetingDate >= new Date(fromDate)) && (!toDate || meetingDate <= new Date(toDate));
-                });
-
-                renderFilteredMeetings(filteredMeetings);
-                filterModal.style.display = 'none';
-            });
-
             renderMeetings();
         });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const meetingList = document.getElementById("meeting-list");
+
+        // Lấy dữ liệu từ localStorage
+        let meetings = JSON.parse(localStorage.getItem("meetingHistory")) || [];
+
+        // Kiểm tra nếu không có dữ liệu
+        if (meetings.length === 0) {
+            meetingList.innerHTML = "<p class='text-muted'>Chưa có cuộc họp nào được lưu.</p>";
+            return;
+        }
+
+        // Hiển thị danh sách cuộc họp
+        meetings.forEach((meeting, index) => {
+            let meetingItem = document.createElement("div");
+            meetingItem.classList.add("card", "mb-3", "p-3", "meeting-item");
+            meetingItem.innerHTML = `
+                <h5>${meeting.date} - ${meeting.title}</h5>
+                <p>${meeting.details}</p>
+                <button class="delete-btn btn btn-danger" data-index="${index}">Xóa</button>
+            `;
+            meetingList.appendChild(meetingItem);
+        });
+
+        // Xử lý xóa cuộc họp
+        document.querySelectorAll(".delete-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                let index = this.getAttribute("data-index");
+                meetings.splice(index, 1);
+                localStorage.setItem("meetingHistory", JSON.stringify(meetings));
+                location.reload(); // Reload lại trang để cập nhật danh sách
+            });
+        });
+    });
+</script>
+
     </script>
 </body>
 </html>
