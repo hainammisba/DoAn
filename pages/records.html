@@ -444,6 +444,7 @@ leo dolor condimentum arcu, a interdum arcu enim sed justo. Suspendisse at solli
             };
             fileInput.click();
         });
+
         // --- Xử lý chọn folder trong modal ---
         document.querySelectorAll('#folderGridModal .folder-item').forEach(item => {
             item.addEventListener('click', function() {
@@ -499,6 +500,43 @@ leo dolor condimentum arcu, a interdum arcu enim sed justo. Suspendisse at solli
             const modalInstance = bootstrap.Modal.getInstance(saveModalEl);
             modalInstance.hide();
         });
+    
+    document.getElementById('modalSaveBtn').addEventListener('click', function () {
+        const fileName = document.getElementById('fileNameModal').value.trim();
+        const selectedFolderEl = document.querySelector('#saveModal .folder-item.selected');
+
+        if (!fileName || !selectedFolderEl) {
+            Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Vui lòng nhập tên file và chọn thư mục!' });
+            return;
+        }
+
+        const selectedFolder = selectedFolderEl.getAttribute('data-folder');
+        const transcriptionText = document.getElementById('transcription').value;
+        const timestamp = new Date().toISOString().slice(0, 19).replace("T", " "); 
+
+        // Lấy danh sách cuộc họp từ localStorage
+        let meetingHistory = JSON.parse(localStorage.getItem("meetingHistory")) || [];
+
+        // Thêm cuộc họp mới vào danh sách
+        meetingHistory.push({
+            date: timestamp,
+            title: fileName,
+            details: transcriptionText,
+            folder: selectedFolder
+        });
+
+        // Lưu lại vào localStorage
+        localStorage.setItem("meetingHistory", JSON.stringify(meetingHistory));
+
+        // Thông báo thành công
+        Swal.fire({
+            icon: 'success',
+            title: 'Đã lưu',
+            text: `File "${fileName}" đã được lưu vào "${selectedFolder}"`,
+            timer: 2000,
+            showConfirmButton: false
+        });
+    });
     </script>
 
     <!-- Core JS -->
